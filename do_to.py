@@ -1,5 +1,32 @@
 import flet as ft
 
+
+class TodoApp(ft.UserControl):
+    def build(self):
+        self.new_task = ft.TextField(hint_text="..//",width=250,expand=True)
+        self.task_view = ft.Column()
+        
+        return ft.Column(
+            width=600,
+            controls=[
+                ft.Row(
+            controls=[
+                self.new_task,
+                ft.FloatingActionButton(icon=ft.icons.ADD,bgcolor="#EB4343",on_click=self.add_click)
+            ]  
+            ),
+                self.task_view
+            ]
+        )
+    
+    
+    def add_click(self,e):
+        self.task_view.controls.append(ft.Checkbox(label=self.new_task.value))
+        self.new_task.value = ""
+        self.task_view.update()
+        self.new_task.update()
+          
+
 def main(page: ft.Page):
     
     def sunnyMode(e):
@@ -11,11 +38,7 @@ def main(page: ft.Page):
         page.update()
     
     
-    def add_click(e):
-        task_view.controls.append(ft.Checkbox(label=new_task.value))
-        new_task.value = ""
-        task_view.update()
-        new_task.update()
+    
         
        
     page.appbar = ft.AppBar(
@@ -28,22 +51,13 @@ def main(page: ft.Page):
         ]
     )
     page.bgcolor = "#0A0A22"
-    task_view = ft.Column()
-    new_task = ft.TextField(hint_text="..//",width=250,expand=True)
     
-    view = ft.Column(
-        controls=[
-            ft.Row(
-          controls=[
-              new_task,
-              ft.FloatingActionButton(icon=ft.icons.ADD,bgcolor="#EB4343",on_click=add_click)
-          ]  
-        ),
-            task_view
-        ]
-    )
+    
+    view = TodoApp()
+    view_2 = TodoApp()
+    
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.add(view)
+    page.add(view,view_2)
 
 
 ft.app(main)
