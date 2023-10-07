@@ -6,22 +6,34 @@ class TodoApp(ft.UserControl):
         self.new_task = ft.TextField(hint_text="..//",width=250,expand=True)
         self.task_view = ft.Column()
         
+        self.filter = ft.Tabs(
+            selected_index=0,
+            on_change=self.task_changed,
+            tabs=[ft.Tab(text='Todo'),ft.Tab(text='Activa'),ft.Tab(text='Completada')]
+        )
+        
         return ft.Column(
             width=600,
             controls=[
                 ft.Row(
-            controls=[
-                self.new_task,
-                ft.FloatingActionButton(icon=ft.icons.ADD,bgcolor="#EB4343",on_click=self.add_click)
-            ]  
-            ),
-                self.task_view
+                    controls=[
+                        self.new_task,
+                        ft.FloatingActionButton(icon=ft.icons.ADD,bgcolor="#EB4343",on_click=self.add_click)
+                    ]
+                ),
+                ft.Column(
+                    spacing=25,
+                    controls=[
+                        self.filter,
+                        self.task_view
+                    ]
+                )
             ]
         )
     
     
     def add_click(self,e):
-        task = Task(self.new_task.value,self.task_delete)
+        task = Task(self.new_task.value,self.task_changed,self.task_delete)
         self.task_view.controls.append(task)
         self.new_task.value = ""
         self.task_view.update()
@@ -30,17 +42,33 @@ class TodoApp(ft.UserControl):
     def task_delete(self, task):
         self.task_view.controls.remove(task)
         self.update()
+        
+    def update(self):
+        status = self.filter.tabs[self.filter.selected_index].text
+        for task in self.task_view.controls:
+            task.visible=(
+                status == 'Todo'
+                or (status == "Activa" and not(task.completed) )
+                or (status == "Completada" and task.completed )
+            )
+        
+        super().update()
+        
+    def task_changed(self,e):
+        self.update()
 
 
 class Task(ft.UserControl):
-    def __init__(self, task_name,task_delete):
+    def __init__(self, task_name,task_status_change,task_delete):
         super().__init__()
+        self.completed = False
         self.task_name = task_name
+        self.task_status_change = task_status_change
         self.task_delete = task_delete
         
         
     def build(self):
-        self.display_task = ft.Checkbox(value=False,label=self.task_name)
+        self.display_task = ft.Checkbox(value=False,label=self.task_name,on_change=self.status_changed)
         self.edit_name = ft.TextField(expand=1)
         
         self.display_view = ft.Row(
@@ -103,6 +131,10 @@ class Task(ft.UserControl):
     def delete_clicked(self,e):
         self.task_delete(self)
         
+    def status_changed(self, e):
+        self.completed = self.display_task.value
+        self.task_status_change(self)
+        
               
 
 def main(page: ft.Page):
@@ -114,8 +146,6 @@ def main(page: ft.Page):
             page.bgcolor = ft.colors.WHITE
         
         page.update()
-    
-    
     
         
        
