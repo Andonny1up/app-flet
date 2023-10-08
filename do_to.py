@@ -5,6 +5,7 @@ class TodoApp(ft.UserControl):
     def build(self):
         self.new_task = ft.TextField(hint_text="..//",width=250,expand=True)
         self.task_view = ft.Column()
+        self.items_left = ft.Text("0 Articulos restantes")
         
         self.filter = ft.Tabs(
             selected_index=0,
@@ -25,7 +26,18 @@ class TodoApp(ft.UserControl):
                     spacing=25,
                     controls=[
                         self.filter,
-                        self.task_view
+                        self.task_view,
+                        ft.Row(
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            controls=[
+                                self.items_left,
+                                ft.OutlinedButton(
+                                    text="Borrar completadas",
+                                    on_click=self.clear_clicked
+                                )
+                            ]
+                        )
                     ]
                 )
             ]
@@ -36,8 +48,7 @@ class TodoApp(ft.UserControl):
         task = Task(self.new_task.value,self.task_changed,self.task_delete)
         self.task_view.controls.append(task)
         self.new_task.value = ""
-        self.task_view.update()
-        self.new_task.update()
+        self.update()
         
     def task_delete(self, task):
         self.task_view.controls.remove(task)
@@ -45,17 +56,26 @@ class TodoApp(ft.UserControl):
         
     def update(self):
         status = self.filter.tabs[self.filter.selected_index].text
+        count = 0
         for task in self.task_view.controls:
             task.visible=(
                 status == 'Todo'
                 or (status == "Activa" and not(task.completed) )
                 or (status == "Completada" and task.completed )
             )
+            if not task.completed:
+                count += 1
         
+        self.items_left.value = f"{count} Articulo(s) restantes"
         super().update()
         
     def task_changed(self,e):
         self.update()
+        
+    def clear_clicked(self,e):
+        for task in self.task_view.controls:
+            if task.completed:
+                self.task_delete(task)
 
 
 class Task(ft.UserControl):
@@ -162,10 +182,9 @@ def main(page: ft.Page):
     
     
     view = TodoApp()
-    view_2 = TodoApp()
     
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.add(view,view_2)
+    page.add(view)
 
 
 ft.app(main)
